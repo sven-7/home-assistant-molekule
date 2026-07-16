@@ -128,7 +128,7 @@ def infer_capabilities(device: dict[str, Any]) -> DeviceCapabilities:
 
     mode = str(device.get("mode", "")).lower()
     presets: list[str] = [PRESET_MANUAL]
-    if mode == API_MODE_SMART or "smart" in device:
+    if mode == API_MODE_SMART:
         presets = [PRESET_AUTO_PROTECT, PRESET_MANUAL]
 
     try:
