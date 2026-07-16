@@ -6,6 +6,7 @@ Filled from `dump_molekule_devices.py` run 2026-07-16.
 |----------|------------------------|----------------------|-------------|------------|
 | Lounge (Mini Plus / Plus 2) | `Air Mini Plus` | `smart`, `manual` | `pecoFilter` present (may be `""`); `preFilter` present but empty | Yes — `PM2_5` returned; `PM10`/`RH`/`TVOC`/`CO2` null |
 | Lil boy (Mini Plus / Plus 2) | `Air Mini Plus` | `smart`, `manual` | same | same |
+| Mini Plus 2 (no separate API string) | N/A — same as `Air Mini Plus` | — | — | — |
 | Biggy (Original) | `Molekule Air` | `on` (when powered; not `smart`/`manual`) | `pecoFilter`=`98`, `preFilter`=`97` | No — API 400 `Device does not support sensor data` |
 
 ## Alias notes

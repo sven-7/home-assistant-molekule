@@ -29,7 +29,15 @@ API_CLIENT_ID = "1ec4fa3oriciupg94ugoi84kkk"
 API_POOL_ID = "us-west-2_KqrEZKC6r"
 API_URL = "https://api.molekule.com/users/me/devices/"
 
-REDACT_KEYS = {"serialNumber", "macAddress", "id", "ownerId", "email"}
+REDACT_KEYS = {
+    "serialNumber",
+    "macAddress",
+    "id",
+    "ownerId",
+    "email",
+    "firstConnectedUser",
+    "mainFilterSerialNumber",
+}
 
 
 def redact(obj):
@@ -129,7 +137,10 @@ async def main() -> int:
                     if raw and entry["sensordata"] is None:
                         entry["sensordata_raw_keys"] = list(raw.keys())
                 except Exception as err:  # noqa: BLE001
-                    entry["sensordata_error"] = str(err)
+                    msg = str(err)
+                    if serial and serial in msg:
+                        msg = msg.replace(serial, "<redacted>")
+                    entry["sensordata_error"] = msg
             dump["devices"].append(entry)
             print(
                 f"- {entry['name']}: model={entry['model']!r} "
