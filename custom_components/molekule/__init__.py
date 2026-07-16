@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 import logging
 from datetime import timedelta
 from homeassistant.core import HomeAssistant
@@ -10,6 +11,7 @@ from homeassistant.const import CONF_MODEL
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from .const import DOMAIN, MANUFACTURER, CONF_EMAIL, CONF_PASSWORD, CONF_REFRESH_RATE, CONF_REFRESH_RATE_DEFAULT
 from .api import MolekuleApi
+from .capabilities import capabilities_for_device
 
 PLATFORMS: list[str] = ["fan", "sensor"]
 _LOGGER = logging.getLogger(__name__)
@@ -26,6 +28,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except Exception as err:
         await api.close()
         raise ConfigEntryNotReady from err
+
+    logged_unknown: set[str] = set()
 
     async def async_update_data():
         """Fetch data from API endpoint."""
@@ -50,25 +54,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 device["mode"] = device.get("mode", "manual")
                 device["online"] = device.get("online", "false")
                 
-                # Only fetch sensor data for supported models
+                caps = capabilities_for_device(device)
+                if caps.family == "unknown" and serial not in logged_unknown:
+                    logged_unknown.add(serial)
+                    _LOGGER.warning(
+                        "Unknown Molekule model %r for %s; keys=%s",
+                        device_model,
+                        serial,
+                        sorted(device.keys()),
+                    )
+
                 sensor_data = None
-                if device_model not in ["Molekule Air", "Unknown Model"]:
+                if caps.has_sensor_data:
                     try:
                         sensor_data = await api.get_sensor_data(serial)
                     except Exception as err:
-                        _LOGGER.warning(f"Failed to get sensor data for {serial}: {err}")
-                
-                if sensor_data:
-                    processed_data[serial] = sensor_data
-                else:
-                    # Provide empty sensor data structure for models without sensors
-                    processed_data[serial] = {
-                        "PM2_5": None,
-                        "PM10": None,
-                        "RH": None,
-                        "TVOC": None,
-                        "CO2": None,
-                    }
+                        _LOGGER.warning("Failed to get sensor data for %s: %s", serial, err)
+
+                processed_data[serial] = sensor_data or {}
                 
                 # Create DeviceInfo
                 device_info = DeviceInfo(

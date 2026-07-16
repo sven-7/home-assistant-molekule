@@ -11,27 +11,12 @@ from homeassistant.const import (
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 from homeassistant.helpers.entity import EntityCategory
 from .const import DOMAIN
+from .capabilities import DeviceCapabilities, capabilities_for_device
+from .sensor_helpers import sensor_keys_for_capabilities
 import logging
 from enum import Enum
 
 _LOGGER = logging.getLogger(__name__)
-
-# Define sensor support by model
-MODEL_CAPABILITIES = {
-    "Molekule Air": {
-        "has_sensor_data": False,  # No sensordata endpoint support
-        "supported_sensors": ["peco_filter"]
-    },
-    "Molekule Air Pro": {
-        "has_sensor_data": True,   # Has sensordata endpoint support
-        "supported_sensors": ["air_quality", "humidity", "pm25", "pm10", "voc", "co2", "peco_filter"]
-    }
-}
-
-DEFAULT_CAPABILITIES = {
-    "has_sensor_data": False,
-    "supported_sensors": ["air_quality", "peco_filter"]
-}
 
 class AirQualityLevel(Enum):
     UNKNOWN = "unknown"
@@ -59,39 +44,79 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         return
 
     for device in coordinator.data["content"]:
-        model = device.get('subProduct', {}).get('name', 'Unknown Model')
-        capabilities = MODEL_CAPABILITIES.get(model, DEFAULT_CAPABILITIES)
-        
-        device_sensors = []
-        serial = device["serialNumber"]
-        
-        # Only add sensors that are supported by this model
-        if "air_quality" in capabilities["supported_sensors"]:
-            device_sensors.append(MolekuleAirQualitySensor(coordinator, serial, api))
-        
-        if "peco_filter" in capabilities["supported_sensors"]:
-            device_sensors.append(MolekulePECOFilterSensor(coordinator, serial, api))
-            
-        # Only add sensor data endpoint sensors if the model supports them
-        if capabilities["has_sensor_data"]:
-            if "humidity" in capabilities["supported_sensors"]:
-                device_sensors.append(MolekuleHumiditySensor(coordinator, serial, api))
-            if "pm25" in capabilities["supported_sensors"]:
-                device_sensors.append(MolekulePM25Sensor(coordinator, serial, api))
-            if "pm10" in capabilities["supported_sensors"]:
-                device_sensors.append(MolekulePM10Sensor(coordinator, serial, api))
-            if "voc" in capabilities["supported_sensors"]:
-                device_sensors.append(MolekuleVOCSensor(coordinator, serial, api))
-            if "co2" in capabilities["supported_sensors"]:
-                device_sensors.append(MolekuleCO2Sensor(coordinator, serial, api))
-        
+        model = device.get("subProduct", {}).get("name", "Unknown Model")
+        device_sensors = sensors_for_device(
+            device, capabilities_for_device(device), coordinator, api
+        )
         sensors.extend(device_sensors)
-        _LOGGER.info(f"Created {len(device_sensors)} sensors for {model} device {device['name']}")
+        _LOGGER.info(
+            "Created %d sensors for %s device %s",
+            len(device_sensors),
+            model,
+            device.get("name", device.get("serialNumber")),
+        )
     
     if not sensors:
         _LOGGER.warning("No compatible Molekule devices found. No sensors created.")
     
     async_add_entities(sensors, True)
+
+
+def _available_sensor_fields(
+    device: dict, sensor_data: dict
+) -> set[str]:
+    """Return source fields whose current values can produce sensor states."""
+    fields = set(device)
+    fields.update(
+        key for key, value in sensor_data.items() if value is not None
+    )
+
+    fields.discard("aqi")
+    if isinstance(device.get("aqi"), str) and device["aqi"].strip():
+        fields.add("aqi")
+
+    for field in ("preFilter", "prefilter", "pre_filter"):
+        fields.discard(field)
+        raw = device.get(field)
+        if not isinstance(raw, str) or not raw.strip():
+            continue
+        try:
+            int(raw)
+        except ValueError:
+            continue
+        fields.add(field)
+
+    return fields
+
+
+def sensors_for_device(
+    device: dict,
+    caps: DeviceCapabilities,
+    coordinator: DataUpdateCoordinator,
+    api,
+) -> list[SensorEntity]:
+    """Build sensors supported by a device's capabilities and current data."""
+    serial = device.get("serialNumber")
+    if not serial:
+        return []
+
+    available_fields = _available_sensor_fields(
+        device, coordinator.data.get(serial, {})
+    )
+    factories = {
+        "air_quality": MolekuleAirQualitySensor,
+        "peco_filter": MolekulePECOFilterSensor,
+        "pre_filter": MolekulePreFilterSensor,
+        "humidity": MolekuleHumiditySensor,
+        "pm25": MolekulePM25Sensor,
+        "pm10": MolekulePM10Sensor,
+        "voc": MolekuleVOCSensor,
+        "co2": MolekuleCO2Sensor,
+    }
+    return [
+        factories[key](coordinator, serial, api)
+        for key in sensor_keys_for_capabilities(caps, available_fields)
+    ]
 
 class MolekuleSensorBase(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator: DataUpdateCoordinator, device_id: str, api, sensor_type: str):
@@ -174,6 +199,28 @@ class MolekulePECOFilterSensor(MolekuleSensorBase):
             return "mdi:alert-outline"
         else:
             return "mdi:check-circle-outline"
+
+
+class MolekulePreFilterSensor(MolekuleSensorBase):
+    def __init__(self, coordinator: DataUpdateCoordinator, device_id: str, api):
+        super().__init__(coordinator, device_id, api, "pre_filter")
+        self._attr_device_class = None
+        self._attr_native_unit_of_measurement = PERCENTAGE
+
+    @property
+    def native_value(self):
+        if not self._device:
+            return None
+        raw = (
+            self._device.get("preFilter")
+            or self._device.get("prefilter")
+            or self._device.get("pre_filter")
+        )
+        try:
+            return int(raw) if raw is not None else None
+        except (TypeError, ValueError):
+            return None
+
 
 class MolekuleHumiditySensor(MolekuleSensorBase):
     def __init__(self, coordinator: DataUpdateCoordinator, device_id: str, api):

@@ -242,6 +242,18 @@ class MolekuleApi:
             _LOGGER.error("Failed to set fan speed: %s", str(err))
             return False
 
+    async def set_mode_action(
+        self, serial: str, action: str, body: dict | None = None
+    ) -> bool:
+        """Invoke a device-mode action with its API request body."""
+        url = f"{API_URL}{serial}/actions/{action}"
+        try:
+            await self._make_request("POST", url, json=body or {})
+            return True
+        except Exception as err:
+            _LOGGER.error("Failed action %s: %s", action, err)
+            return False
+
     async def set_auto_mode(
         self, serial: str, auto: bool, silent: bool = False
     ) -> bool:
@@ -258,8 +270,16 @@ class MolekuleApi:
             except Exception as err:
                 _LOGGER.error("Failed to set auto mode: %s", str(err))
                 return False
-        else:
+
+        url = f"{API_URL}{serial}/actions/manual"
+        try:
+            result = await self._make_request("POST", url)
+        except Exception as err:
+            _LOGGER.error("Failed to set manual mode: %s", str(err))
+            return False
+        if result is None:
             return await self.set_fan_speed(serial, 1)
+        return True
 
     async def get_aqi(self, serial: str) -> Optional[Dict[str, Any]]:
         """Get air quality index for a device."""
