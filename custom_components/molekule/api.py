@@ -258,8 +258,16 @@ class MolekuleApi:
             except Exception as err:
                 _LOGGER.error("Failed to set auto mode: %s", str(err))
                 return False
-        else:
+
+        url = f"{API_URL}{serial}/actions/manual"
+        try:
+            result = await self._make_request("POST", url)
+        except Exception as err:
+            _LOGGER.error("Failed to set manual mode: %s", str(err))
+            return False
+        if result is None:
             return await self.set_fan_speed(serial, 1)
+        return True
 
     async def get_aqi(self, serial: str) -> Optional[Dict[str, Any]]:
         """Get air quality index for a device."""
