@@ -179,10 +179,10 @@ Fill after running dump_molekule_devices.py:
 | Mini Plus 2 | | | | |
 | Original | | | | |
 
-Provisional original preset mapping (confirm/replace):
-- silent → mode or action TBD
-- auto → likely `smart` / `enable-smart-mode`
-- boost → likely `burst` field / action TBD
+Provisional original preset mapping (confirm/replace from dump):
+- silent → record observed `mode` / action path from dump
+- auto → likely `smart` / `enable-smart-mode` (confirm)
+- boost → likely `burst` field or max fanspeed action (confirm)
 ```
 
 - [ ] **Step 5: Commit**
