@@ -1,0 +1,218 @@
+{
+  "devices": [
+    {
+      "model": "Molekule Air",
+      "name": "Biggy",
+      "mode": "on",
+      "fanspeed": "2",
+      "aqi": "",
+      "keys": [
+        "aqi",
+        "burst",
+        "counterfeit",
+        "fanspeed",
+        "firmwareVersion",
+        "firstConnectedUser",
+        "firstConnectionDate",
+        "macAddress",
+        "mainFilterSerialNumber",
+        "mode",
+        "model",
+        "name",
+        "online",
+        "pecoFilter",
+        "preFilter",
+        "serialNumber",
+        "silent",
+        "subProduct"
+      ],
+      "device": {
+        "serialNumber": "<redacted>",
+        "name": "Biggy",
+        "subProduct": {
+          "id": "<redacted>",
+          "name": "Molekule Air",
+          "product": {
+            "id": "<redacted>",
+            "name": "MH",
+            "description": "Molekule Air",
+            "serialNumberPrefix": "MH",
+            "health": [
+              "sn",
+              "fw",
+              "dc"
+            ]
+          },
+          "createdBy": "admin-app@molekule.com",
+          "createdAt": "2020-03-18T12:11:58.462Z",
+          "updatedBy": "admin-app@molekule.com",
+          "updatedAt": "2020-03-18T12:11:58.462Z",
+          "serialNumberPrefix": "MH1"
+        },
+        "firmwareVersion": "FW:8.31.2",
+        "model": "Molekule Air",
+        "firstConnectedUser": "c156e091-e866-4f06-a941-6b85ae3d53ae",
+        "firstConnectionDate": "2025-02-16T05:16:47.231Z",
+        "macAddress": "<redacted>",
+        "pecoFilter": "98",
+        "fanspeed": "2",
+        "mode": "on",
+        "online": "true",
+        "aqi": "",
+        "preFilter": "97",
+        "silent": "",
+        "burst": "N/A",
+        "mainFilterSerialNumber": "",
+        "counterfeit": false
+      },
+      "sensordata": null,
+      "sensordata_error": "GET https://api.molekule.com/users/me/devices/<redacted>/sensordata?... -> 400: Device does not support sensor data"
+    },
+    {
+      "model": "Air Mini Plus",
+      "name": "Lounge",
+      "mode": "smart",
+      "fanspeed": "3",
+      "aqi": "good",
+      "keys": [
+        "aqi",
+        "burst",
+        "counterfeit",
+        "fanspeed",
+        "firmwareVersion",
+        "firstConnectedUser",
+        "firstConnectionDate",
+        "macAddress",
+        "mainFilterSerialNumber",
+        "mode",
+        "model",
+        "name",
+        "online",
+        "pecoFilter",
+        "preFilter",
+        "serialNumber",
+        "silent",
+        "subProduct"
+      ],
+      "device": {
+        "serialNumber": "<redacted>",
+        "name": "Lounge",
+        "subProduct": {
+          "id": "<redacted>",
+          "name": "Air Mini Plus",
+          "product": {
+            "id": "<redacted>",
+            "name": "MN",
+            "description": "Molekule Air mini",
+            "serialNumberPrefix": "MN",
+            "health": [
+              "sn",
+              "fw",
+              "mid"
+            ]
+          },
+          "createdBy": "admin-app@molekule.com",
+          "createdAt": "2020-03-18T12:11:58.462Z",
+          "updatedBy": "admin-app@molekule.com",
+          "updatedAt": "2020-03-18T12:11:58.462Z",
+          "serialNumberPrefix": "MN2"
+        },
+        "firmwareVersion": "9.4.32.3",
+        "model": "Air Mini Pro",
+        "firstConnectedUser": "c156e091-e866-4f06-a941-6b85ae3d53ae",
+        "firstConnectionDate": "2026-06-14T19:45:08.045Z",
+        "macAddress": "<redacted>",
+        "pecoFilter": "",
+        "fanspeed": "3",
+        "mode": "smart",
+        "online": "true",
+        "aqi": "good",
+        "preFilter": "",
+        "silent": "",
+        "burst": "0",
+        "mainFilterSerialNumber": "<redacted>",
+        "counterfeit": false
+      },
+      "sensordata": {
+        "PM2_5": 0.0,
+        "PM10": null,
+        "RH": null,
+        "TVOC": null,
+        "CO2": null
+      }
+    },
+    {
+      "model": "Air Mini Plus",
+      "name": "Lil boy",
+      "mode": "manual",
+      "fanspeed": "2",
+      "aqi": "good",
+      "keys": [
+        "aqi",
+        "burst",
+        "counterfeit",
+        "fanspeed",
+        "firmwareVersion",
+        "firstConnectedUser",
+        "firstConnectionDate",
+        "macAddress",
+        "mainFilterSerialNumber",
+        "mode",
+        "model",
+        "name",
+        "online",
+        "pecoFilter",
+        "preFilter",
+        "serialNumber",
+        "silent",
+        "subProduct"
+      ],
+      "device": {
+        "serialNumber": "<redacted>",
+        "name": "Lil boy",
+        "subProduct": {
+          "id": "<redacted>",
+          "name": "Air Mini Plus",
+          "product": {
+            "id": "<redacted>",
+            "name": "MN",
+            "description": "Molekule Air mini",
+            "serialNumberPrefix": "MN",
+            "health": [
+              "sn",
+              "fw",
+              "mid"
+            ]
+          },
+          "createdBy": "admin-app@molekule.com",
+          "createdAt": "2020-03-18T12:11:58.462Z",
+          "updatedBy": "admin-app@molekule.com",
+          "updatedAt": "2020-03-18T12:11:58.462Z",
+          "serialNumberPrefix": "MN2"
+        },
+        "firmwareVersion": "9.4.32.3",
+        "model": "Air Mini Pro",
+        "firstConnectedUser": "c156e091-e866-4f06-a941-6b85ae3d53ae",
+        "firstConnectionDate": "2025-06-06T01:39:54.838Z",
+        "macAddress": "<redacted>",
+        "pecoFilter": "0",
+        "fanspeed": "2",
+        "mode": "manual",
+        "online": "true",
+        "aqi": "good",
+        "preFilter": "",
+        "silent": "",
+        "burst": "0",
+        "mainFilterSerialNumber": "<redacted>",
+        "counterfeit": false
+      },
+      "sensordata": {
+        "PM2_5": 0.0,
+        "PM10": null,
+        "RH": null,
+        "TVOC": null,
+        "CO2": null
+      }
+    }
+  ]
+}
