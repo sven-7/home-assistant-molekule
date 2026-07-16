@@ -242,6 +242,18 @@ class MolekuleApi:
             _LOGGER.error("Failed to set fan speed: %s", str(err))
             return False
 
+    async def set_mode_action(
+        self, serial: str, action: str, body: dict | None = None
+    ) -> bool:
+        """Invoke a device-mode action with its API request body."""
+        url = f"{API_URL}{serial}/actions/{action}"
+        try:
+            await self._make_request("POST", url, json=body or {})
+            return True
+        except Exception as err:
+            _LOGGER.error("Failed action %s: %s", action, err)
+            return False
+
     async def set_auto_mode(
         self, serial: str, auto: bool, silent: bool = False
     ) -> bool:

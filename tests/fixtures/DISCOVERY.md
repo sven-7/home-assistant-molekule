@@ -34,12 +34,19 @@ Observed while on:
 - `fanspeed`: `"2"`
 - `aqi`: `""` (empty — do not invent AQI entity unless non-empty)
 
-**Working hypothesis for Task 5** (confirm by toggling in app and re-dumping):
-- Silent → set `silent` / low fanspeed (likely speed 1) while `mode=on`
-- Auto → may use smart-mode or a dedicated action (not observed in this dump)
-- Boost → may set `burst` or max fanspeed
+**Task 5 provisional mapping** (must be validated by Task 8 toggling each
+preset in the Molekule app and re-dumping):
+- Read: `mode=="off"`/missing → no preset; `mode=="smart"` → Auto; a
+  non-empty/non-`"0"`/non-`"N/A"` `burst` → Boost; non-empty/non-`"0"`/non-
+  `"false"` `silent` or `fanspeed=="1"` → Silent; `fanspeed=="3"` → Boost;
+  `mode=="on"`/`"manual"` with another speed → Auto (best-effort).
+- Write: Silent → `set-fan-speed` with `{"fanSpeed": 1}`; Auto →
+  `enable-smart-mode` with `{"silent": "0"}`; Boost → `set-fan-speed` with
+  `{"fanSpeed": 3}`.
 
-Do not hardcode Silent/Auto/Boost → `smart`/`manual` for original without a second dump after mode changes.
+These action names and the on-state fallback are not live-validated. Do not
+consider this mapping confirmed until Task 8 captures dumps after each app
+toggle.
 
 ## Sensor policy from dump
 

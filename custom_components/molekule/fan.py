@@ -10,7 +10,12 @@ from homeassistant.util.percentage import (
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 from .capabilities import capabilities_for_device
 from .const import CONF_SILENT_AUTO, DOMAIN, PRESET_AUTO_PROTECT
-from .fan_helpers import api_auto_requested, preset_from_device_mode
+from .fan_helpers import (
+    api_auto_requested,
+    original_preset_from_device,
+    original_preset_to_action,
+    preset_from_device_mode,
+)
 import logging
 import asyncio
 
@@ -76,6 +81,8 @@ class MolekuleFan(CoordinatorEntity, FanEntity):
 
     @property
     def preset_mode(self):
+        if self._caps.fan_control == "presets":
+            return original_preset_from_device(self._device or {})
         return preset_from_device_mode(
             self._device.get("mode") if self._device else None,
             self._caps.preset_modes,
@@ -100,6 +107,13 @@ class MolekuleFan(CoordinatorEntity, FanEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         if preset_mode not in self._caps.preset_modes:
             raise ValueError(f"Unsupported preset: {preset_mode}")
+        if self._caps.fan_control == "presets":
+            action, body = original_preset_to_action(preset_mode)
+            ok = await self._api.set_mode_action(self._device_id, action, body)
+            if not ok:
+                raise HomeAssistantError("Failed to set Molekule preset mode")
+            await self.coordinator.async_request_refresh()
+            return
         if PRESET_AUTO_PROTECT not in self._caps.preset_modes:
             raise HomeAssistantError("Preset control is not implemented for this Molekule model")
 
