@@ -29,8 +29,11 @@ def preset_from_device_mode(
     """Map a device API mode to an available Home Assistant preset."""
     if not preset_modes:
         return None
-    if mode == API_MODE_SMART and PRESET_AUTO_PROTECT in preset_modes:
-        return PRESET_AUTO_PROTECT
+    if mode == API_MODE_SMART:
+        if PRESET_AUTO in preset_modes:
+            return PRESET_AUTO
+        if PRESET_AUTO_PROTECT in preset_modes:
+            return PRESET_AUTO_PROTECT
     if PRESET_MANUAL in preset_modes:
         return PRESET_MANUAL
     return None
@@ -38,7 +41,7 @@ def preset_from_device_mode(
 
 def api_auto_requested(preset_mode: str) -> bool:
     """Return whether a preset requests Molekule Auto Protect mode."""
-    return preset_mode == PRESET_AUTO_PROTECT
+    return preset_mode in (PRESET_AUTO, PRESET_AUTO_PROTECT)
 
 
 def original_preset_from_device(device: dict[str, object]) -> str | None:

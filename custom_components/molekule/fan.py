@@ -9,7 +9,12 @@ from homeassistant.util.percentage import (
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 from .capabilities import capabilities_for_device
-from .const import CONF_SILENT_AUTO, DOMAIN, PRESET_AUTO_PROTECT
+from .const import (
+    CONF_SILENT_AUTO,
+    DOMAIN,
+    PRESET_AUTO,
+    PRESET_AUTO_PROTECT,
+)
 from .fan_helpers import (
     api_auto_requested,
     original_preset_from_device,
@@ -112,17 +117,27 @@ class MolekuleFan(CoordinatorEntity, FanEntity):
             ok = await self._api.set_mode_action(self._device_id, action, body)
             if not ok:
                 raise HomeAssistantError("Failed to set Molekule preset mode")
+            await asyncio.sleep(3)
             await self.coordinator.async_request_refresh()
             return
-        if PRESET_AUTO_PROTECT not in self._caps.preset_modes:
-            raise HomeAssistantError("Preset control is not implemented for this Molekule model")
+        if not any(
+            p in self._caps.preset_modes
+            for p in (PRESET_AUTO, PRESET_AUTO_PROTECT)
+        ):
+            raise HomeAssistantError(
+                "Preset control is not implemented for this Molekule model"
+            )
 
         silent_auto = self.coordinator.config_entry.options.get(CONF_SILENT_AUTO, False)
         ok = await self._api.set_auto_mode(
             self._device_id, api_auto_requested(preset_mode), silent_auto
         )
         if not ok:
-            raise HomeAssistantError("Failed to set Molekule preset mode")
+            raise HomeAssistantError(
+                "Failed to set Molekule Auto Protect (API rejected the request)"
+            )
+        # Device state lags the cloud action briefly.
+        await asyncio.sleep(3)
         await self.coordinator.async_request_refresh()
 
     async def async_turn_on(self, percentage: int | None = None, preset_mode: str | None = None, **kwargs) -> None:

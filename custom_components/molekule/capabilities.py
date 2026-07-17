@@ -55,7 +55,8 @@ _CAPABILITIES: dict[str, DeviceCapabilities] = {
         family=FAMILY_MINI_PLUS,
         fan_control="speed",
         max_fan_speed=5,
-        preset_modes=(PRESET_AUTO_PROTECT, PRESET_MANUAL),
+        # HA shows "auto" — maps to Auto Protect (API mode=smart).
+        preset_modes=(PRESET_AUTO, PRESET_MANUAL),
         has_sensor_data=True,
         supported_sensors=frozenset(
             {"air_quality", "peco_filter", "humidity", "pm25", "pm10", "voc", "co2"}
@@ -73,7 +74,7 @@ _CAPABILITIES: dict[str, DeviceCapabilities] = {
         family=FAMILY_AIR_PRO,
         fan_control="speed",
         max_fan_speed=6,
-        preset_modes=(PRESET_AUTO_PROTECT, PRESET_MANUAL),
+        preset_modes=(PRESET_AUTO, PRESET_MANUAL),
         has_sensor_data=True,
         supported_sensors=frozenset(
             {"air_quality", "peco_filter", "humidity", "pm25", "pm10", "voc", "co2"}
@@ -129,7 +130,7 @@ def infer_capabilities(device: dict[str, Any]) -> DeviceCapabilities:
     mode = str(device.get("mode", "")).lower()
     presets: list[str] = [PRESET_MANUAL]
     if mode == API_MODE_SMART:
-        presets = [PRESET_AUTO_PROTECT, PRESET_MANUAL]
+        presets = [PRESET_AUTO, PRESET_MANUAL]
 
     try:
         speed = int(device.get("fanspeed") or 1)

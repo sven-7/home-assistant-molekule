@@ -6,15 +6,16 @@ from fan_helpers import (
 )
 
 
-def test_smart_mode_maps_to_auto_protect():
-    assert preset_from_device_mode("smart", ("auto_protect", "manual")) == "auto_protect"
+def test_smart_mode_maps_to_auto():
+    assert preset_from_device_mode("smart", ("auto", "manual")) == "auto"
 
 
 def test_manual_mode_maps_to_manual():
-    assert preset_from_device_mode("manual", ("auto_protect", "manual")) == "manual"
+    assert preset_from_device_mode("manual", ("auto", "manual")) == "manual"
 
 
-def test_auto_protect_requests_auto():
+def test_auto_requests_auto_protect_api():
+    assert api_auto_requested("auto") is True
     assert api_auto_requested("auto_protect") is True
     assert api_auto_requested("manual") is False
 

@@ -254,32 +254,90 @@ class MolekuleApi:
             _LOGGER.error("Failed action %s: %s", action, err)
             return False
 
+    async def _post_action(
+        self, url: str, body: dict | None = None
+    ) -> bool:
+        """POST a device action. Return True only for HTTP 200/204."""
+        await self.ensure_token_valid()
+        client_session = await self.session
+        headers = {
+            "Authorization": self.token,
+            "x-api-version": "1.0",
+            "Content-Type": "application/json",
+        }
+        request_kwargs: Dict[str, Any] = {"headers": headers}
+        if body is not None:
+            request_kwargs["json"] = body
+        else:
+            # Mini Auto Protect (homebridge AutoFunctionality=1) expects an empty body.
+            request_kwargs["data"] = b""
+
+        for attempt in range(self._retry_attempts):
+            try:
+                async with client_session.request(
+                    "POST", url, **request_kwargs
+                ) as response:
+                    if response.status == 401:
+                        await self.authenticate()
+                        headers["Authorization"] = self.token
+                        request_kwargs["headers"] = headers
+                        continue
+                    if response.status in (200, 204):
+                        return True
+                    text = await response.text()
+                    _LOGGER.error(
+                        "Action POST %s failed with status %s: %s",
+                        url,
+                        response.status,
+                        text,
+                    )
+                    return False
+            except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+                _LOGGER.error(
+                    "Action POST failed (attempt %d/%d): %s",
+                    attempt + 1,
+                    self._retry_attempts,
+                    err,
+                )
+                if attempt + 1 < self._retry_attempts:
+                    await asyncio.sleep(self._retry_delay * (attempt + 1))
+                    await self.close()
+                    client_session = await self.session
+                else:
+                    return False
+        return False
+
     async def set_auto_mode(
         self, serial: str, auto: bool, silent: bool = False
     ) -> bool:
-        """Set device auto mode."""
-        if auto:
-            url = f"{API_URL}{serial}/actions/enable-smart-mode"
-            try:
-                await self._make_request(
-                    "POST",
-                    url,
-                    json={"silent": str(int(silent))}
-                )
-                return True
-            except Exception as err:
-                _LOGGER.error("Failed to set auto mode: %s", str(err))
-                return False
+        """Enable or leave Auto Protect / smart mode.
 
-        url = f"{API_URL}{serial}/actions/manual"
-        try:
-            result = await self._make_request("POST", url)
-        except Exception as err:
-            _LOGGER.error("Failed to set manual mode: %s", str(err))
+        Mini Plus accepts ``enable-smart-mode`` with an empty body. Air Pro
+        may want ``{"silent": "0"|"1"}``. Fall back through known variants
+        and only report success on HTTP 200/204.
+        """
+        if auto:
+            enable_url = f"{API_URL}{serial}/actions/enable-smart-mode"
+            if silent:
+                if await self._post_action(enable_url, {"silent": "1"}):
+                    return True
+            else:
+                # Empty body first — required for Air Mini Plus.
+                if await self._post_action(enable_url, None):
+                    return True
+                if await self._post_action(enable_url, {"silent": "0"}):
+                    return True
+            # jpcaldwell-style fallback
+            if await self._post_action(f"{API_URL}{serial}/actions/smart", None):
+                return True
+            _LOGGER.error("Failed to enable smart mode for %s", serial)
             return False
-        if result is None:
-            return await self.set_fan_speed(serial, 1)
-        return True
+
+        # Leaving auto: prefer /actions/manual, else set an explicit fan speed
+        # (homebridge exits auto by posting set-fan-speed).
+        if await self._post_action(f"{API_URL}{serial}/actions/manual", None):
+            return True
+        return await self.set_fan_speed(serial, 1)
 
     async def get_aqi(self, serial: str) -> Optional[Dict[str, Any]]:
         """Get air quality index for a device."""
