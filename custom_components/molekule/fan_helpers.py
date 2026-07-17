@@ -22,6 +22,20 @@ except ImportError:
         PRESET_SILENT,
     )
 
+# Original Molekule Air has no cloud smart/auto mode (homebridge
+# AutoFunctionality=0). App labels Silent / Auto / Boost are the three
+# discrete fan speeds.
+_ORIGINAL_SPEED_TO_PRESET = {
+    "1": PRESET_SILENT,
+    "2": PRESET_AUTO,
+    "3": PRESET_BOOST,
+}
+_ORIGINAL_PRESET_TO_SPEED = {
+    PRESET_SILENT: 1,
+    PRESET_AUTO: 2,
+    PRESET_BOOST: 3,
+}
+
 
 def preset_from_device_mode(
     mode: str | None, preset_modes: tuple[str, ...]
@@ -34,7 +48,10 @@ def preset_from_device_mode(
             return PRESET_AUTO
         if PRESET_AUTO_PROTECT in preset_modes:
             return PRESET_AUTO_PROTECT
-    if PRESET_MANUAL in preset_modes:
+        return None
+    if mode in (API_MODE_MANUAL, "on") and PRESET_MANUAL in preset_modes:
+        return PRESET_MANUAL
+    if PRESET_MANUAL in preset_modes and mode not in ("off", None):
         return PRESET_MANUAL
     return None
 
@@ -45,44 +62,21 @@ def api_auto_requested(preset_mode: str) -> bool:
 
 
 def original_preset_from_device(device: dict[str, object]) -> str | None:
-    """Best-effort mapping of an original Molekule device payload to a preset.
+    """Map original Molekule Air state to Silent / Auto / Boost.
 
-    The original device dump only observed ``mode="on"`` with blank ``silent``
-    and ``burst`` fields.  These precedence rules are provisional until Task 8
-    records app toggles for Silent, Auto, and Boost.
+    These presets are fan-speed labels (1/2/3), not cloud smart mode.
     """
     mode = device.get("mode")
     if mode in ("off", None):
         return None
-    if mode == API_MODE_SMART:
-        return PRESET_AUTO
-
-    burst = device.get("burst")
-    if burst not in ("", "0", "N/A", None):
-        return PRESET_BOOST
-
-    silent = device.get("silent")
-    if silent not in ("", "0", "false", None):
-        return PRESET_SILENT
-
-    fanspeed = str(device.get("fanspeed", ""))
-    if fanspeed == "1":
-        return PRESET_SILENT
-    if fanspeed == "3":
-        return PRESET_BOOST
-    if mode in ("on", API_MODE_MANUAL):
-        return PRESET_AUTO
-    return None
+    fanspeed = str(device.get("fanspeed", "")).strip()
+    return _ORIGINAL_SPEED_TO_PRESET.get(fanspeed)
 
 
 def original_preset_to_action(preset_mode: str) -> tuple[str, dict[str, int | str]]:
-    """Map an original Molekule preset to its provisional API action."""
-    actions = {
-        PRESET_SILENT: ("set-fan-speed", {"fanSpeed": 1}),
-        PRESET_AUTO: ("enable-smart-mode", {"silent": "0"}),
-        PRESET_BOOST: ("set-fan-speed", {"fanSpeed": 3}),
-    }
+    """Map an original Molekule preset to set-fan-speed."""
     try:
-        return actions[preset_mode]
+        speed = _ORIGINAL_PRESET_TO_SPEED[preset_mode]
     except KeyError as err:
         raise ValueError(f"Unsupported original Molekule preset: {preset_mode}") from err
+    return ("set-fan-speed", {"fanSpeed": speed})

@@ -25,28 +25,19 @@ Filled from `dump_molekule_devices.py` run 2026-07-16.
 
 ### Original (`Molekule Air`)
 
-App UX is Silent / Auto / Boost, but API does **not** use those as `mode` strings.
+App labels **Silent / Auto / Boost** are the three fan speeds — not cloud
+smart mode. Homebridge marks this model `AutoFunctionality: 0`.
 
-Observed while on:
-- `mode`: `"on"` (off would be `"off"` — confirm when toggling power)
-- `silent`: `""` (empty at capture)
-- `burst`: `"N/A"`
-- `fanspeed`: `"2"`
-- `aqi`: `""` (empty — do not invent AQI entity unless non-empty)
+| App label | API |
+|-----------|-----|
+| Silent | `set-fan-speed` fanSpeed **1** |
+| Auto | `set-fan-speed` fanSpeed **2** |
+| Boost | `set-fan-speed` fanSpeed **3** |
+| Standby | `set-power-status` off (`mode=off`) |
+| On | `mode=on` with a fanspeed |
 
-**Task 5 provisional mapping** (must be validated by Task 8 toggling each
-preset in the Molekule app and re-dumping):
-- Read: `mode=="off"`/missing → no preset; `mode=="smart"` → Auto; a
-  non-empty/non-`"0"`/non-`"N/A"` `burst` → Boost; non-empty/non-`"0"`/non-
-  `"false"` `silent` or `fanspeed=="1"` → Silent; `fanspeed=="3"` → Boost;
-  `mode=="on"`/`"manual"` with another speed → Auto (best-effort).
-- Write: Silent → `set-fan-speed` with `{"fanSpeed": 1}`; Auto →
-  `enable-smart-mode` with `{"silent": "0"}`; Boost → `set-fan-speed` with
-  `{"fanSpeed": 3}`.
+Do **not** call `enable-smart-mode` for original Air.
 
-These action names and the on-state fallback are not live-validated. Do not
-consider this mapping confirmed until Task 8 captures dumps after each app
-toggle.
 
 ## Sensor policy from dump
 

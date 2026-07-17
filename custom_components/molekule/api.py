@@ -215,44 +215,24 @@ class MolekuleApi:
             return None
 
     async def set_power_status(self, serial: str, status: bool) -> bool:
-        """Set device power status."""
+        """Set device power / standby status."""
         url = f"{API_URL}{serial}/actions/set-power-status"
-        try:
-            await self._make_request(
-                "POST",
-                url,
-                json={"status": "on" if status else "off"}
-            )
-            return True
-        except Exception as err:
-            _LOGGER.error("Failed to set power status: %s", str(err))
-            return False
+        return await self._post_action(
+            url, {"status": "on" if status else "off"}
+        )
 
     async def set_fan_speed(self, serial: str, speed: int) -> bool:
         """Set device fan speed."""
         url = f"{API_URL}{serial}/actions/set-fan-speed"
-        try:
-            await self._make_request(
-                "POST",
-                url,
-                json={"fanSpeed": speed}
-            )
-            return True
-        except Exception as err:
-            _LOGGER.error("Failed to set fan speed: %s", str(err))
-            return False
+        return await self._post_action(url, {"fanSpeed": int(speed)})
 
     async def set_mode_action(
         self, serial: str, action: str, body: dict | None = None
     ) -> bool:
         """Invoke a device-mode action with its API request body."""
         url = f"{API_URL}{serial}/actions/{action}"
-        try:
-            await self._make_request("POST", url, json=body or {})
-            return True
-        except Exception as err:
-            _LOGGER.error("Failed action %s: %s", action, err)
-            return False
+        return await self._post_action(url, body)
+
 
     async def _post_action(
         self, url: str, body: dict | None = None
