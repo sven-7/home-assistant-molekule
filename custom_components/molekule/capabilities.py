@@ -58,9 +58,8 @@ _CAPABILITIES: dict[str, DeviceCapabilities] = {
         # HA shows "auto" — maps to Auto Protect (API mode=smart).
         preset_modes=(PRESET_AUTO, PRESET_MANUAL),
         has_sensor_data=True,
-        supported_sensors=frozenset(
-            {"air_quality", "peco_filter", "humidity", "pm25", "pm10", "voc", "co2"}
-        ),
+        # Mini sensordata only reliably returns PM2.5 (homebridge AQI level 2).
+        supported_sensors=frozenset({"air_quality", "peco_filter", "pm25"}),
     ),
     FAMILY_ORIGINAL: DeviceCapabilities(
         family=FAMILY_ORIGINAL,
