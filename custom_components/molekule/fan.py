@@ -8,6 +8,7 @@ from homeassistant.util.percentage import (
     percentage_to_ranged_value,
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
+from .availability import device_available
 from .capabilities import capabilities_for_device
 from .const import (
     API_MODE_SMART,
@@ -89,6 +90,16 @@ class MolekuleFan(CoordinatorEntity, FanEntity):
     @property
     def name(self):
         return f"{self._device['name']} Fan" if self._device else None
+
+    @property
+    def available(self):
+        """Unavailable when the cloud poll failed, the device left the account, or the cloud says it is offline."""
+        return super().available and device_available(self._device)
+
+    @property
+    def extra_state_attributes(self):
+        # The raw cloud flag, so an unplugged unit can be checked against what the cloud reports.
+        return {"online": self._device.get("online")} if self._device else {}
 
     @property
     def is_on(self):

@@ -11,6 +11,7 @@ from homeassistant.const import (
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 from homeassistant.helpers.entity import EntityCategory
 from .const import DOMAIN
+from .availability import device_available
 from .capabilities import DeviceCapabilities, capabilities_for_device
 from .sensor_helpers import sensor_keys_for_capabilities
 import logging
@@ -142,8 +143,8 @@ class MolekuleSensorBase(CoordinatorEntity, SensorEntity):
 
     @property
     def available(self):
-        """Return if entity is available."""
-        return self._device is not None
+        """Unavailable when the cloud poll failed, the device left the account, or the cloud says it is offline."""
+        return super().available and device_available(self._device)
 
 
 class MolekuleAirQualitySensor(MolekuleSensorBase):

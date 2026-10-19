@@ -52,7 +52,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 device["fanspeed"] = device.get("fanspeed", "1")
                 device["pecoFilter"] = device.get("pecoFilter", "0")
                 device["mode"] = device.get("mode", "manual")
-                device["online"] = device.get("online", "false")
+                # "online" is left as sent: availability.py treats a missing flag as online.
                 
                 caps = capabilities_for_device(device)
                 if caps.family == "unknown" and serial not in logged_unknown:
