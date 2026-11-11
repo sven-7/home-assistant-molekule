@@ -4,9 +4,8 @@ from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, Sen
 from homeassistant.const import (
     UnitOfTime,
     PERCENTAGE,
-    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
-    CONCENTRATION_PARTS_PER_BILLION,
-    CONCENTRATION_PARTS_PER_MILLION
+    UnitOfDensity,
+    UnitOfRatio,
 )
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 from homeassistant.helpers.entity import EntityCategory
@@ -237,7 +236,7 @@ class MolekulePM25Sensor(MolekuleSensorBase):
     def __init__(self, coordinator: DataUpdateCoordinator, device_id: str, api):
         super().__init__(coordinator, device_id, api, "PM2.5")
         self._attr_device_class = SensorDeviceClass.PM25
-        self._attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        self._attr_native_unit_of_measurement = UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
 
     @property
     def native_value(self):
@@ -247,7 +246,7 @@ class MolekulePM10Sensor(MolekuleSensorBase):
     def __init__(self, coordinator: DataUpdateCoordinator, device_id: str, api):
         super().__init__(coordinator, device_id, api, "PM10")
         self._attr_device_class = SensorDeviceClass.PM10
-        self._attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        self._attr_native_unit_of_measurement = UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
 
     @property
     def native_value(self):
@@ -257,7 +256,7 @@ class MolekuleVOCSensor(MolekuleSensorBase):
     def __init__(self, coordinator: DataUpdateCoordinator, device_id: str, api):
         super().__init__(coordinator, device_id, api, "VOC")
         self._attr_device_class = SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS
-        self._attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        self._attr_native_unit_of_measurement = UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
 
     @property
     def native_value(self):
@@ -267,7 +266,7 @@ class MolekuleCO2Sensor(MolekuleSensorBase):
     def __init__(self, coordinator: DataUpdateCoordinator, device_id: str, api):
         super().__init__(coordinator, device_id, api, "CO2")
         self._attr_device_class = SensorDeviceClass.CO2
-        self._attr_native_unit_of_measurement = CONCENTRATION_PARTS_PER_MILLION
+        self._attr_native_unit_of_measurement = UnitOfRatio.PARTS_PER_MILLION
 
     @property
     def native_value(self):
